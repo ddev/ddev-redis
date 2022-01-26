@@ -1,7 +1,7 @@
 # Simple template to demonstrate addon-template
 version: '3.6'
 services:
-  addon-template:
+  redis:
     container_name: ddev-${DDEV_SITENAME}-redis
     image: redis:6
     networks: [default, ddev_default]

@@ -6,7 +6,7 @@ setup() {
   ddev delete -Oy ${PROJNAME} || true
   cd "${TESTDIR}"
   ddev config --project-name=${PROJNAME} --project-type=drupal9 --docroot=web --create-docroot
-  ddev start
+  ddev start -y
 }
 
 teardown() {

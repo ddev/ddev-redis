@@ -19,5 +19,4 @@ global_files:
 # - homeadditions
 
 post_install_actions:
-- chmod +x ~/.ddev/commands/redis/redis-cli
 # - perl -pi -e 's/oldstring/newstring/g' docker-compose.addon-template.yaml
