@@ -1,4 +1,3 @@
-# Simple template to demonstrate addon-template
 version: '3.6'
 services:
   redis:
