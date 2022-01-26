@@ -65,7 +65,7 @@ jobs:
     - name: Download docker images
       run: | 
         mkdir junk && pushd junk && ddev config --auto && ddev debug download-images >/dev/null
-        docker pull memcached:1.6 >/dev/null
+        docker pull redis:6 >/dev/null
     - name: tmate debugging session
       uses: mxschmitt/action-tmate@v3
       with:

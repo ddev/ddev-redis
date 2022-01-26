@@ -9,9 +9,9 @@ pre_install_actions:
 
 # list of files and directories listed that are copied into project .ddev directory
 project_files:
-- docker-compose.addon-template.yaml
-# - extra_files/
-# - somefile.sh
+- docker-compose.redis.yaml
+- redis/
+- commands/redis/
 
 # List of files and directories that are copied into the global .ddev directory
 global_files:
@@ -19,5 +19,5 @@ global_files:
 # - homeadditions
 
 post_install_actions:
-# - chmod +x ~/.ddev/commands/web/somecommand
+- chmod +x ~/.ddev/commands/redis/redis-cli
 # - perl -pi -e 's/oldstring/newstring/g' docker-compose.addon-template.yaml
