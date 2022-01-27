@@ -74,5 +74,5 @@ jobs:
       if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
 
     - name: tests
-      run: bats tests
+      run: bats --verbose-run tests
 
