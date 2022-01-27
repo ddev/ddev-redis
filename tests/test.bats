@@ -20,4 +20,7 @@ teardown() {
   ddev get ${DIR}
   ddev restart
   ddev redis-cli INFO | grep "^redis_version:6."
+  # Check if Redis configuration was setup.
+  [ -f web/sites/default/settings.ddev.redis.php ]
+  grep -F 'settings.ddev.redis.php' web/sites/default/settings.php
 }
