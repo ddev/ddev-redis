@@ -6,8 +6,8 @@ This repository allows you to quickly install redis into a [Ddev](https://ddev.r
 
 ## Installation
 
-1.`ddev get hussainweb/ddev-redis && ddev restart`
-5. `ddev restart`
+1. `ddev get hussainweb/ddev-redis`
+2. `ddev restart`
 
 ## Explanation
 
