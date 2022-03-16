@@ -29,8 +29,7 @@ jobs:
 
     strategy:
       matrix:
-#        ddev_version: [latest, edge, HEAD]
-        ddev_version: [edge, HEAD]
+        ddev_version: [stable, edge, HEAD]
 #        ddev_version: [PR]
       fail-fast: false
 
@@ -43,8 +42,8 @@ jobs:
         brew install bats-core mkcert
         mkcert -install
 
-    - name: Use ddev latest stable
-      if: matrix.ddev_version == 'latest'
+    - name: Use ddev stable
+      if: matrix.ddev_version == 'stable'
       run: brew install drud/ddev/ddev
 
     - name: Use ddev edge
