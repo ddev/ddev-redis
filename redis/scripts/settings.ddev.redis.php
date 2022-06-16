@@ -1,5 +1,5 @@
 <?php
-
+// #ddev-generated
 use Drupal\Core\Installer\InstallerKernel;
 
 if (!InstallerKernel::installationAttempted() && extension_loaded('redis') && class_exists('Drupal\redis\ClientFactory')) {

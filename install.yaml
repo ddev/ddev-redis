@@ -8,8 +8,10 @@ pre_install_actions:
 # list of files and directories listed that are copied into project .ddev directory
 project_files:
 - docker-compose.redis.yaml
-- redis/
-- commands/redis/
+- redis/scripts/settings.ddev.redis.php
+- redis/scripts/setup-drupal-settings.sh
+- redis/redis.conf
+- commands/redis/redis-cli
 
 # List of files and directories that are copied into the global .ddev directory
 global_files:
