@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+#ddev-generated
 set -e
 
 if [[ $DDEV_PROJECT_TYPE != drupal* ]] || [[ $DDEV_PROJECT_TYPE =~ ^drupal(6|7)$ ]] ;
