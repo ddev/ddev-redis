@@ -46,3 +46,14 @@ teardown() {
   # Drupal configuration should not be present
   [ ! -f web/sites/default/settings.ddev.redis.php ]
 }
+
+@test "Drupal 9 installation without settings management" {
+  ddev config --project-name=${PROJNAME} --disable-settings-management --project-type=drupal9 --docroot=web --create-docroot
+  ddev start -y
+  cd ${TESTDIR}
+  ddev get ${DIR}
+  ddev restart
+  ddev redis-cli INFO | grep "^redis_version:6."
+  # Drupal configuration should not be present
+  [ ! -f web/sites/default/settings.ddev.redis.php ]
+}

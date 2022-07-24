@@ -7,6 +7,10 @@ then
   exit 0
 fi
 
+if ( ddev debug configyaml 2>/dev/null | grep 'disable_settings_management:\s*true' >/dev/null 2>&1 ) ; then
+  echo "Not creating settings.ddev.redis.php because disable_settings_management=true" && exit 2
+fi
+
 cp redis/scripts/settings.ddev.redis.php $DDEV_APPROOT/$DDEV_DOCROOT/sites/default/
 
 SETTINGS_FILE_NAME="${DDEV_APPROOT}/${DDEV_DOCROOT}/sites/default/settings.php"
