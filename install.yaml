@@ -23,4 +23,4 @@ removal_actions:
 - |
   #ddev-nodisplay
   #ddev-description:Remove redis settings for Drupal 9+ if applicable
-  redis/scripts/remove-drupal-settings.sh
+  rm -f "${DDEV_APPROOT}/${DDEV_DOCROOT}/sites/default/settings.ddev.redis.php"
