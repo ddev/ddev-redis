@@ -18,3 +18,9 @@ post_install_actions:
   #ddev-nodisplay
   #ddev-description:Install redis settings for Drupal 9+ if applicable
   redis/scripts/setup-drupal-settings.sh
+
+removal_actions:
+- |
+  #ddev-nodisplay
+  #ddev-description:Remove redis settings for Drupal 9+ if applicable
+  redis/scripts/remove-drupal-settings.sh
