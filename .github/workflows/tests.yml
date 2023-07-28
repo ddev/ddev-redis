@@ -28,8 +28,8 @@ env:
   DDEV_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # Allow `--HEAD` flag when running tests against HEAD
   HOMEBREW_NO_INSTALL_FROM_API: 1
-  # Pull the same tag as in docker-compose.redis.yaml
-  REDIS_IMAGE_TAG: 6-bullseye
+  # Pull the same image as in docker-compose.redis.yaml
+  REDIS_IMAGE: redis:6-bullseye
 jobs:
   tests:
     defaults:
@@ -76,7 +76,7 @@ jobs:
     - name: Download docker images
       run: |
         mkdir junk && pushd junk && ddev config --auto && ddev debug download-images >/dev/null
-        docker pull redis:${REDIS_IMAGE_TAG} >/dev/null
+        docker pull ${REDIS_IMAGE} >/dev/null
     - name: tmate debugging session
       uses: mxschmitt/action-tmate@v3
       with:
