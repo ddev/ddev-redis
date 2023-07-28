@@ -20,3 +20,5 @@ This Redis recipe for [DDEV](https://ddev.readthedocs.io) installs a [`.ddev/doc
 * To reach the Redis CLI interface, run `ddev redis-cli` to begin a session. You can also run Redis CLI commands directly on the command-line, e.g., `ddev redis-cli INFO`.
 
 **Contributed and maintained by [@hussainweb](https://github.com/hussainweb) based on the original [ddev-contrib recipe](https://github.com/ddev/ddev-contrib/tree/master/docker-compose-services/redis) by [@gormus](https://github.com/gormus)**
+
+**Co-maintained by [@stasadev](https://github.com/stasadev)**
