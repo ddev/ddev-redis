@@ -1,0 +1,28 @@
+{
+  "branches": [
+    "master"
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/git",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "zip -qr /tmp/release.zip *.yaml redis commands"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "/tmp/release.zip",
+            "name": "ddev-redis--${nextRelease.version}.zip",
+            "label": "DDev Redis Addon v${nextRelease.version}"
+          }
+        ]
+      }
+    ]
+  ]
+}

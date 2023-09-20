@@ -1,0 +1,26 @@
+name: Release
+on:
+  push:
+    paths-ignore:
+      - '**/renovate.json'
+      - README.md
+    branches:
+      - master
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: yarn
+      - name: Install Yarn dependencies
+        run: yarn install
+      - name: Release
+        run: yarn semantic-release
