@@ -14,21 +14,19 @@ It is based on [redis:6-alpine](https://hub.docker.com/layers/library/redis/6-al
 
 ## Version 2 features
 
-There are a lot of differences between [official](https://github.com/ddev/ddev-redis) addon and this one
+There are a lot of differences between **v1** and **v2
 
-| Feature           | v1               | v2                       |
-| ----------------- | ---------------- | ------------------------ |
-| Maximum Memory    | Unlimited        | 512Mb                    |
-| Persistence       | No               | **Yes**                  |
-| Image Size        | 112.9Mb          | 14.38Mb                  |
-| Anonymous Volumes | On every restart | **NO**                   |
-| Optimized config  | No               | **Yes**                  |
+| Feature           | v1               | v2      |
+| ----------------- | ---------------- | ------- |
+| Maximum Memory    | Unlimited        | 512Mb   |
+| Persistence       | No               | **Yes** |
+| Image Size        | 113  Mb          | 30Mb    |
+| Anonymous Volumes | On every restart | **NO**  |
+| Optimized config  | No               | **Yes** |
 
 ### Anonymous volumes - Wait, what?
 
-Official redis docker image mounts an anonymous volume on `/data` because... reasons. That volume is recreated on every restart. This one mounts the persistence directory on `/data` and names it according to the project name, and gives it a proper label. This way, each DDEV project has it's own data volume, and data can persist accordingly
-
-![Anonymous volume in action](images/anon-volume.jpg)
+Previous verson mounted an anonymous volume on `/data` because... reasons. That volume was recreated on every restart. v2 mounts the persistence directory on `/data` and names it according to the project name, and gives it a proper label. This way, each DDEV project has it's own data volume, and data can persist accordingly.
 
 ### Persistence?
 
@@ -72,6 +70,6 @@ Addon exposes the following commands
 | `redis-flush`     | `ddev redis-flush` | Clears all the Redis Databases     |
 ___
 
-**Contributed and maintained by [@hussainweb](https://github.com/hussainweb) based on the original [ddev-contrib recipe](https://github.com/ddev/ddev-contrib/tree/master/docker-compose-services/redis) by [@gormus](https://github.com/gormus)**
-**Co-maintained by [@stasadev](https://github.com/stasadev)**
+**Contributed and maintained by [@hussainweb](https://github.com/hussainweb) based on the original [ddev-contrib recipe](https://github.com/ddev/ddev-contrib/tree/master/docker-compose-services/redis) by [@gormus](https://github.com/gormus)**  
+**Co-maintained by [@stasadev](https://github.com/stasadev)**  
 **Overhauled and redesigned by [Oblak Studio](https://github.com/oblakstudio)**

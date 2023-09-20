@@ -8,7 +8,7 @@ volumes:
 services:
   redis:
     container_name: ddev-${DDEV_SITENAME}-redis
-    image: redis:${DDEV_REDIS_VERSION:-7}-alpine
+    image: redis:${DDEV_REDIS_VERSION:-6}-alpine
     command: /etc/redis/conf/redis.conf
     volumes:
       - '.:/mnt/ddev_config'

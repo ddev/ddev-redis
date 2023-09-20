@@ -16,9 +16,8 @@ on:
         type: string
         description: Test type to run. Can be "local" or "release"
         required: false
-        default: "release"
+        default: 'release'
 
-  # This is required for "gautamkrishnar/keepalive-workflow"
 permissions:
   contents: write
 
@@ -30,7 +29,6 @@ env:
   # NIGHTLY_DDEV_PR_URL: "https://nightly.link/ddev/ddev/actions/runs/1720215802/ddev-linux-amd64.zip"
   # Allow ddev get to use a github token to prevent rate limiting by tests
   DDEV_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  # Allow `--HEAD` flag when running tests against HEAD
 
 jobs:
   run_ddev_tests:
