@@ -1,0 +1,11 @@
+name: 'Test DDEV Addon'
+on:
+  pull_request:
+  merge_group:
+
+jobs:
+  run_tests:
+    name: Run tests
+    uses: ddev/ddev-redis/.github/workflows/reusable_test_ddev_addon.yml@master
+    with:
+      test_type: 'local'

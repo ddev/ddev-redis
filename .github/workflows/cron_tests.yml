@@ -1,0 +1,29 @@
+name: 'Daily tests'
+on:
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: Debug with tmate
+        required: false
+        default: false
+      ddev_version:
+        type: string
+        description: DDEV version to test
+        required: false
+        default: '["stable"]'
+      test_type:
+        type: string
+        description: Test type to run. Can be "local" or "release"
+        required: false
+        default: 'release'
+  schedule:
+    - cron: '25 08 * * *'
+
+jobs:
+  run_tests:
+    name: Run tests
+    uses: ddev/ddev-redis/.github/workflows/reusable_test_ddev_addon.yml@master
+    with:
+      ddev_version: '["stable", "HEAD", "edge"]'
+      test_type: 'release'

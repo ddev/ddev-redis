@@ -1,0 +1,82 @@
+name: Test DDEV addon
+on:
+  workflow_call:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: Debug with tmate
+        required: false
+        default: false
+      ddev_version:
+        type: string
+        description: DDEV version to test
+        required: false
+        default: '["stable"]'
+      test_type:
+        type: string
+        description: Test type to run. Can be "local" or "release"
+        required: false
+        default: "release"
+
+  # This is required for "gautamkrishnar/keepalive-workflow"
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  # NIGHTLY_DDEV_PR_URL: "https://nightly.link/ddev/ddev/actions/runs/1720215802/ddev-linux-amd64.zip"
+  # Allow ddev get to use a github token to prevent rate limiting by tests
+  DDEV_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Allow `--HEAD` flag when running tests against HEAD
+
+jobs:
+  run_ddev_tests:
+    name: Test ${{ matrix.ddev_version }}
+    defaults:
+      run:
+        shell: bash
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ddev_version: ${{ fromJSON(inputs.ddev_version)}}
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Environment setup
+        run: |
+          brew tap bats-core/bats-core
+          brew install bats-core bats-support bats-assert mkcert
+          mkcert -install
+
+      - name: Use ddev edge
+        if: matrix.ddev_version == 'edge'
+        run: brew install ddev/ddev-edge/ddev
+
+      - name: Use ddev HEAD
+        if: matrix.ddev_version == 'HEAD'
+        run: brew install --HEAD ddev/ddev/ddev
+
+      - name: Use ddev stable
+        if: matrix.ddev_version == 'stable'
+        run: brew install ddev/ddev/ddev
+
+      - name: Download docker images
+        run: mkdir junk && pushd junk && ddev config --auto && ddev debug download-images >/dev/null
+
+      - name: tmate debugging session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        if: inputs.debug_enabled == 'true'
+
+      - name: Run BATS
+        run: bats tests --filter-tags ${{ inputs.test_type }}
