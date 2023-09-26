@@ -14,7 +14,7 @@ It is based on [redis:6-alpine](https://hub.docker.com/layers/library/redis/6-al
 
 ## Version 2 features
 
-There are a lot of differences between **v1** and **v2
+There are a lot of differences between **v1** and **v2**
 
 | Feature           | v1               | v2      |
 | ----------------- | ---------------- | ------- |
