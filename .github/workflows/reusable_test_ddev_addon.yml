@@ -19,6 +19,7 @@ on:
         default: 'release'
 
 permissions:
+  # This is required for "gautamkrishnar/keepalive-workflow" to work
   contents: write
 
 defaults:
