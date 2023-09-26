@@ -6,7 +6,7 @@ setup() {
   set -eu -o pipefail
 
   export ADDON_DIR="$( cd "$( dirname "$BATS_TEST_FILENAME" )" >/dev/null 2>&1 && pwd )/.."
-  export PROJECT=testproj
+  export PROJECT=testproject
   export TEST_DIR="$HOME/tmp/$PROJECT"
   export DDEV_NON_INTERACTIVE=true
 
@@ -68,6 +68,7 @@ health_checks() {
 teardown() {
   set -eu -o pipefail
   cd "$TEST_DIR" || ( printf "unable to cd to $TEST_DIR\n" && exit 1 )
+  ddev logs -s redis
   ddev stop
   ddev delete -Oy "$PROJECT" >/dev/null 2>&1
   [ "$TEST_DIR" != "" ] && rm -rf "$TEST_DIR"
