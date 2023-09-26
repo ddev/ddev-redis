@@ -4,23 +4,23 @@ pre_install_actions:
 
 # list of files and directories listed that are copied into project .ddev directory
 project_files:
-- docker-compose.redis.yaml
-- redis/scripts/settings.ddev.redis.php
-- redis/scripts/setup-drupal-settings.sh
-- redis/redis.conf
-- commands/redis/redis-cli
+  - docker-compose.redis.yaml
+  - redis/scripts/settings.ddev.redis.php
+  - redis/scripts/setup-drupal-settings.sh
+  - redis/redis.conf
+  - commands/redis/redis
 
 # List of files and directories that are copied into the global .ddev directory
 global_files:
 
 post_install_actions:
-- |
-  #ddev-nodisplay
-  #ddev-description:Install redis settings for Drupal 9+ if applicable
-  redis/scripts/setup-drupal-settings.sh
+  - |
+    #ddev-nodisplay
+    #ddev-description:Install redis settings for Drupal 9+ if applicable
+    redis/scripts/setup-drupal-settings.sh
 
 removal_actions:
-- |
-  #ddev-nodisplay
-  #ddev-description:Remove redis settings for Drupal 9+ if applicable
-  rm -f "${DDEV_APPROOT}/${DDEV_DOCROOT}/sites/default/settings.ddev.redis.php"
+  - |
+    #ddev-nodisplay
+    #ddev-description:Remove redis settings for Drupal 9+ if applicable
+    rm -f "${DDEV_APPROOT}/${DDEV_DOCROOT}/sites/default/settings.ddev.redis.php"
