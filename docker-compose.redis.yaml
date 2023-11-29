@@ -10,4 +10,8 @@ services:
     volumes:
     - ".:/mnt/ddev_config"
     - "./redis:/usr/local/etc/redis"
+    - "redis:/data"
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+volumes:
+  redis:

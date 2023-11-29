@@ -13,6 +13,8 @@ This repository allows you to quickly install Redis into a [DDEV](https://ddev.r
 
 This Redis recipe for [DDEV](https://ddev.readthedocs.io) installs a [`.ddev/docker-compose.redis.yaml`](docker-compose.redis.yaml) using the `redis` Docker image.
 
+Persistence is disabled by default (see [redis.conf](./redis/redis.conf)), follow the config instructions to enable it, or switch to https://github.com/ddev/ddev-redis-7 where it is enabled by default.
+
 ## Interacting with Redis
 
 * The Redis instance will listen on TCP port 6379 (the Redis default).
