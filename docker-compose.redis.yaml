@@ -9,6 +9,7 @@ services:
       com.ddev.approot: $DDEV_APPROOT
     volumes:
     - ".:/mnt/ddev_config"
+    - "ddev-global-cache:/mnt/ddev-global-cache"
     - "./redis:/usr/local/etc/redis"
     - "redis:/data"
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
