@@ -9,9 +9,9 @@ This repository allows you to quickly install Redis into a [DDEV](https://ddev.r
 1. `ddev get ddev/ddev-redis`
 2. `ddev restart`
 
-Using DDEV v1.23.5+, you can select a different Redis version with:
+With DDEV v1.23.5+ you can choose a different Redis tag, the command below creates a `.ddev/.env.redis` file that you can commit:
 
-1. `ddev get ddev/ddev-redis --environment="DDEV_REDIS_VERSION=7"`
+1. `ddev add-on get ddev/ddev-redis --redis-tag 7`
 2. `ddev restart`
 
 ## Explanation

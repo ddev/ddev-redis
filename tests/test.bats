@@ -14,10 +14,10 @@ teardown() {
 }
 
 @test "basic installation" {
-  ddev config --project-name=${PROJNAME} --project-type=drupal9 --docroot=web --create-docroot
+  ddev config --project-name=${PROJNAME} --project-type=drupal --docroot=web
   ddev start -y
   cd ${TESTDIR}
-  ddev get ${DIR}
+  ddev add-on get ${DIR}
   ddev restart
   ddev redis-cli INFO | grep "^redis_version:6."
   # Check if Redis configuration was setup.
@@ -25,11 +25,25 @@ teardown() {
   grep -F 'settings.ddev.redis.php' web/sites/default/settings.php
 }
 
-@test "non-Drupal installation" {
-  ddev config --project-name=${PROJNAME} --project-type=laravel --docroot=web --create-docroot
+@test "basic installation with Redis tag 7" {
+  ddev config --project-name=${PROJNAME} --project-type=drupal --docroot=web
   ddev start -y
   cd ${TESTDIR}
-  ddev get ${DIR}
+  ddev add-on get ${DIR} --redis-tag=7
+  # Check if .env file for Redis exists.
+  [ -f .ddev/.env.redis ]
+  ddev restart
+  ddev redis-cli INFO | grep "^redis_version:7."
+  # Check if Redis configuration was setup.
+  [ -f web/sites/default/settings.ddev.redis.php ]
+  grep -F 'settings.ddev.redis.php' web/sites/default/settings.php
+}
+
+@test "non-Drupal installation" {
+  ddev config --project-name=${PROJNAME} --project-type=laravel --docroot=web
+  ddev start -y
+  cd ${TESTDIR}
+  ddev add-on get ${DIR}
   ddev restart
   ddev redis-cli INFO | grep "^redis_version:6."
   # Drupal configuration should not be present
@@ -37,10 +51,10 @@ teardown() {
 }
 
 @test "Drupal 7 installation" {
-  ddev config --project-name=${PROJNAME} --project-type=drupal7 --docroot=web --create-docroot
+  ddev config --project-name=${PROJNAME} --project-type=drupal7 --docroot=web
   ddev start -y
   cd ${TESTDIR}
-  ddev get ${DIR}
+  ddev add-on get ${DIR}
   ddev restart
   ddev redis-cli INFO | grep "^redis_version:6."
   # Drupal configuration should not be present
@@ -48,10 +62,10 @@ teardown() {
 }
 
 @test "Drupal 9 installation without settings management" {
-  ddev config --project-name=${PROJNAME} --disable-settings-management --project-type=drupal9 --docroot=web --create-docroot
+  ddev config --project-name=${PROJNAME} --disable-settings-management --project-type=drupal --docroot=web
   ddev start -y
   cd ${TESTDIR}
-  ddev get ${DIR}
+  ddev add-on get ${DIR}
   ddev restart
   ddev redis-cli INFO | grep "^redis_version:6."
   # Drupal configuration should not be present
