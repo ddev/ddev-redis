@@ -29,7 +29,8 @@ teardown() {
   ddev config --project-name=${PROJNAME} --project-type=drupal --docroot=web
   ddev start -y
   cd ${TESTDIR}
-  ddev add-on get ${DIR} --redis-tag=7
+  ddev add-on get ${DIR}
+  ddev dotenv set .ddev/.env.redis --redis-tag=7
   # Check if .env file for Redis exists.
   [ -f .ddev/.env.redis ]
   ddev restart
