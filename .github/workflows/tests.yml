@@ -40,7 +40,7 @@ jobs:
       run: |
         echo "Before set +H: $-"
         set +H
-        echo "After set +H: $-"
+        echo "1After set +H: $-"
 
     - uses: julienloizelet/ddev-add-on-test@b6b8c765ddba5fa511c2f9284e818d7fa3230f27
       with:
