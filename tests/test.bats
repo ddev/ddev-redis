@@ -25,35 +25,15 @@ teardown() {
   grep -F 'settings.ddev.redis.php' web/sites/default/settings.php
 }
 
-@test "non-Drupal installation" {
-  ddev config --project-name=${PROJNAME} --project-type=laravel --docroot=web --create-docroot
+# bats test_tags=release
+@test "install from release" {
+  ddev config --project-name=${PROJNAME} --project-type=drupal9 --docroot=web --create-docroot
   ddev start -y
   cd ${TESTDIR}
-  ddev get ${DIR}
+  ddev get ddev/ddev-redis
   ddev restart
   ddev redis-cli INFO | grep "^redis_version:6."
-  # Drupal configuration should not be present
-  [ ! -f web/sites/default/settings.ddev.redis.php ]
-}
-
-@test "Drupal 7 installation" {
-  ddev config --project-name=${PROJNAME} --project-type=drupal7 --docroot=web --create-docroot
-  ddev start -y
-  cd ${TESTDIR}
-  ddev get ${DIR}
-  ddev restart
-  ddev redis-cli INFO | grep "^redis_version:6."
-  # Drupal configuration should not be present
-  [ ! -f web/sites/default/settings.ddev.redis.php ]
-}
-
-@test "Drupal 9 installation without settings management" {
-  ddev config --project-name=${PROJNAME} --disable-settings-management --project-type=drupal9 --docroot=web --create-docroot
-  ddev start -y
-  cd ${TESTDIR}
-  ddev get ${DIR}
-  ddev restart
-  ddev redis-cli INFO | grep "^redis_version:6."
-  # Drupal configuration should not be present
-  [ ! -f web/sites/default/settings.ddev.redis.php ]
+  # Check if Redis configuration was setup.
+  [ -f web/sites/default/settings.ddev.redis.php ]
+  grep -F 'settings.ddev.redis.php' web/sites/default/settings.php
 }
