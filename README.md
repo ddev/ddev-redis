@@ -9,6 +9,11 @@ This repository allows you to quickly install Redis into a [DDEV](https://ddev.r
 1. `ddev get ddev/ddev-redis`
 2. `ddev restart`
 
+With DDEV v1.23.5+ you can choose a different Redis tag, the command below creates a `.ddev/.env.redis` file that you can commit:
+
+1. `ddev dotenv set .ddev/.env.redis --redis-tag 7`
+2. `ddev restart`
+
 ## Explanation
 
 This Redis recipe for [DDEV](https://ddev.readthedocs.io) installs a [`.ddev/docker-compose.redis.yaml`](docker-compose.redis.yaml) using the `redis` Docker image.
