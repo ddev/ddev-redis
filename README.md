@@ -2,12 +2,27 @@
 
 ## What is this?
 
-This repository allows you to quickly install Redis into a [DDEV](https://ddev.readthedocs.io) project using just `ddev get ddev/ddev-redis`.
+This repository allows you to quickly install Redis into a [DDEV](https://ddev.readthedocs.io) project using the instructions below.
 
 ## Installation
 
-1. `ddev get ddev/ddev-redis`
-2. `ddev restart`
+For DDEV v1.23.5 or above run
+
+```sh
+ddev add-on get ddev/ddev-redis
+```
+
+For earlier versions of DDEV run
+
+```sh
+ddev get ddev/ddev-redis
+```
+
+Then restart your project
+
+```sh
+ddev restart
+```
 
 With DDEV v1.23.5+ you can choose a different Redis tag, the command below creates a `.ddev/.env.redis` file that you can commit:
 
