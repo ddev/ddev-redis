@@ -17,7 +17,14 @@ post_install_actions:
 - |
   #ddev-nodisplay
   #ddev-description:Install redis settings for Drupal 9+ if applicable
-  redis/scripts/setup-drupal-settings.sh
+  if ! redis/scripts/setup-drupal-settings.sh; then
+    for file in redis/scripts/settings.ddev.redis.php redis/scripts/setup-drupal-settings.sh; do
+      if grep -q "#ddev-generated" "${file}" 2>/dev/null; then
+        echo "Removing ${file} as not applicable"
+        rm -f "${file}"
+      fi
+    done
+  fi
 
 removal_actions:
 - |

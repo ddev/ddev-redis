@@ -4,11 +4,11 @@ set -e
 
 if [[ $DDEV_PROJECT_TYPE != drupal* ]] || [[ $DDEV_PROJECT_TYPE =~ ^drupal(6|7)$ ]] ;
 then
-  exit 0
+  exit 1
 fi
 
 if ( ddev debug configyaml 2>/dev/null | grep 'disable_settings_management:\s*true' >/dev/null 2>&1 ) ; then
-  exit 0
+  exit 2
 fi
 
 cp redis/scripts/settings.ddev.redis.php $DDEV_APPROOT/$DDEV_DOCROOT/sites/default/
