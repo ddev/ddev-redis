@@ -4,6 +4,12 @@ set -e
 
 if [[ $DDEV_PROJECT_TYPE != drupal* ]] || [[ $DDEV_PROJECT_TYPE =~ ^drupal(6|7)$ ]] ;
 then
+  for file in redis/scripts/settings.ddev.redis.php redis/scripts/setup-drupal-settings.sh; do
+    if grep -q "#ddev-generated" "${file}" 2>/dev/null; then
+      echo "Removing ${file} as not applicable"
+      rm -f "${file}"
+    fi
+  done
   exit 0
 fi
 
