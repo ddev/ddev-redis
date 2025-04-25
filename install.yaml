@@ -24,7 +24,7 @@ post_install_actions:
     #ddev-description:Install redis settings for Drupal 9+ if applicable
     redis/scripts/setup-drupal-settings.sh
   - |
-    #ddev-description:Using optimized config if --redis-optimized
+    #ddev-description:Using optimized config if --redis-optimized=true
     redis/scripts/setup-redis-optimized-config.sh
   - |
     #ddev-description:Remove redis/scripts if there are no files
