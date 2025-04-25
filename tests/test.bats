@@ -30,7 +30,7 @@ teardown() {
   ddev start -y
   cd ${TESTDIR}
   ddev add-on get ${DIR}
-  ddev dotenv set .ddev/.env.redis --redis-tag=6
+  ddev dotenv set .ddev/.env.redis --redis-docker-image=redis:6
   # Check if .env file for Redis exists.
   [ -f .ddev/.env.redis ]
   ddev restart
