@@ -19,22 +19,22 @@ teardown() {
   cd ${TESTDIR}
   ddev add-on get ${DIR}
   ddev restart
-  ddev redis-cli INFO | grep "^redis_version:6."
+  ddev redis-cli INFO | grep "^redis_version:7."
   # Check if Redis configuration was setup.
   [ -f web/sites/default/settings.ddev.redis.php ]
   grep -F 'settings.ddev.redis.php' web/sites/default/settings.php
 }
 
-@test "basic installation with Redis tag 7" {
+@test "basic installation with Redis tag 6" {
   ddev config --project-name=${PROJNAME} --project-type=drupal --docroot=web
   ddev start -y
   cd ${TESTDIR}
   ddev add-on get ${DIR}
-  ddev dotenv set .ddev/.env.redis --redis-tag=7
+  ddev dotenv set .ddev/.env.redis --redis-tag=6
   # Check if .env file for Redis exists.
   [ -f .ddev/.env.redis ]
   ddev restart
-  ddev redis-cli INFO | grep "^redis_version:7."
+  ddev redis-cli INFO | grep "^redis_version:6."
   # Check if Redis configuration was setup.
   [ -f web/sites/default/settings.ddev.redis.php ]
   grep -F 'settings.ddev.redis.php' web/sites/default/settings.php
@@ -46,7 +46,7 @@ teardown() {
   cd ${TESTDIR}
   ddev add-on get ${DIR}
   ddev restart
-  ddev redis-cli INFO | grep "^redis_version:6."
+  ddev redis-cli INFO | grep "^redis_version:7."
   # Drupal configuration should not be present
   [ ! -f web/sites/default/settings.ddev.redis.php ]
 }
@@ -57,7 +57,7 @@ teardown() {
   cd ${TESTDIR}
   ddev add-on get ${DIR}
   ddev restart
-  ddev redis-cli INFO | grep "^redis_version:6."
+  ddev redis-cli INFO | grep "^redis_version:7."
   # Drupal configuration should not be present
   [ ! -f web/sites/default/settings.ddev.redis.php ]
 }
@@ -68,7 +68,7 @@ teardown() {
   cd ${TESTDIR}
   ddev add-on get ${DIR}
   ddev restart
-  ddev redis-cli INFO | grep "^redis_version:6."
+  ddev redis-cli INFO | grep "^redis_version:7."
   # Drupal configuration should not be present
   [ ! -f web/sites/default/settings.ddev.redis.php ]
 }
