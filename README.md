@@ -1,46 +1,64 @@
-[![tests](https://github.com/ddev/ddev-redis/actions/workflows/tests.yml/badge.svg)](https://github.com/ddev/ddev-redis/actions/workflows/tests.yml) ![project is maintained](https://img.shields.io/maintenance/yes/2025.svg)
+[![add-on registry](https://img.shields.io/badge/DDEV-Add--on_Registry-blue)](https://addons.ddev.com)
+[![tests](https://github.com/ddev/ddev-redis/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/ddev/ddev-redis/actions/workflows/tests.yml?query=branch%3Amain)
+[![last commit](https://img.shields.io/github/last-commit/ddev/ddev-redis)](https://github.com/ddev/ddev-redis/commits)
+[![release](https://img.shields.io/github/v/release/ddev/ddev-redis)](https://github.com/ddev/ddev-redis/releases/latest)
 
-## What is this?
+## DDEV Redis
 
-This repository allows you to quickly install Redis into a [DDEV](https://ddev.readthedocs.io) project using the instructions below.
+## Overview
+
+[Redis](https://redis.io/) is an in-memory key–value database, used as a distributed cache and message broker, with optional durability.
+
+This add-on integrates Redis into your [DDEV](https://ddev.com/) project with Redis persistence enabled by default.
 
 ## Installation
 
-For DDEV v1.23.5 or above run
-
-```sh
+```bash
 ddev add-on get ddev/ddev-redis
-```
-
-For earlier versions of DDEV run
-
-```sh
-ddev get ddev/ddev-redis
-```
-
-Then restart your project
-
-```sh
 ddev restart
 ```
 
-With DDEV v1.23.5+ you can choose a different Redis tag, the command below creates a `.ddev/.env.redis` file that you can commit:
+After installation, make sure to commit the `.ddev` directory to version control.
 
-1. `ddev dotenv set .ddev/.env.redis --redis-docker-image=redis:6`
-2. `ddev restart`
+## Usage
 
-## Explanation
+| Command | Description |
+| ------- | ----------- |
+| `ddev redis-cli` | Run `redis-cli` inside the Redis container |
+| `ddev redis` | Alias for `ddev redis-cli` |
+| `ddev redis-flush` | Flush all cache inside the Redis container |
+| `ddev describe` | View service status and used ports for Redis |
+| `ddev logs -s redis` | Check Redis logs |
 
-This Redis recipe for [DDEV](https://ddev.readthedocs.io) installs a [`.ddev/docker-compose.redis.yaml`](docker-compose.redis.yaml) using the `redis` Docker image.
+Redis is available inside Docker containers with `redis:6379`.
 
-Persistence is disabled by default (see [redis.conf](./redis/redis.conf)), follow the config instructions to enable it, or switch to https://github.com/ddev/ddev-redis-7 where it is enabled by default.
+## Redis Credentials
 
-## Interacting with Redis
+| Field    | Value                 |
+|----------|-----------------------|
+| Username | `redis`               |
+| Password | `` (empty by default) |
 
-* The Redis instance will listen on TCP port 6379 (the Redis default).
-* Configure your application to access Redis on the host:port `redis:6379`.
-* To reach the Redis CLI interface, run `ddev redis-cli` to begin a session. You can also run Redis CLI commands directly on the command-line, e.g., `ddev redis-cli INFO`.
+## Advanced Customization
 
-**Contributed and maintained by [@hussainweb](https://github.com/hussainweb) based on the original [ddev-contrib recipe](https://github.com/ddev/ddev-contrib/tree/master/docker-compose-services/redis) by [@gormus](https://github.com/gormus)**
+To change the used Docker image:
 
-**Co-maintained by [@stasadev](https://github.com/stasadev)**
+```bash
+ddev dotenv set .ddev/.env.redis --redis-docker-image=redis:7
+ddev add-on get ddev/ddev-redis
+ddev restart
+```
+
+Make sure to commit the `.ddev/.env.redis` file to version control.
+
+All customization options (use with caution):
+
+| Variable | Flag | Default |
+| -------- | ---- | ------- |
+| `REDIS_DOCKER_IMAGE` | `--redis-docker-image` | `redis:7` |
+
+## Credits
+
+**Contributed by [@hussainweb](https://github.com/hussainweb) based on the original [ddev-contrib recipe](https://github.com/ddev/ddev-contrib/tree/master/docker-compose-services/redis) by [@gormus](https://github.com/gormus)**
+
+**Maintained by the [DDEV team](https://ddev.com/support-ddev/)**
