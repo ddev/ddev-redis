@@ -6,6 +6,7 @@ project_files:
   - redis/scripts/setup-drupal-settings.sh
   - redis/redis.conf
   - commands/redis/redis-cli
+  - commands/redis/redis-flush
 
 ddev_version_constraint: '>= v1.24.3'
 
