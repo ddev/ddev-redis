@@ -4,7 +4,16 @@ project_files:
   - docker-compose.redis.yaml
   - redis/scripts/settings.ddev.redis.php
   - redis/scripts/setup-drupal-settings.sh
+  - redis/scripts/setup-redis-optimized-config.sh
   - redis/redis.conf
+  - redis/advanced.conf
+  - redis/append.conf
+  - redis/general.conf
+  - redis/io.conf
+  - redis/memory.conf
+  - redis/network.conf
+  - redis/security.conf
+  - redis/snapshots.conf
   - commands/redis/redis-cli
   - commands/redis/redis-flush
 
@@ -14,6 +23,12 @@ post_install_actions:
   - |
     #ddev-description:Install redis settings for Drupal 9+ if applicable
     redis/scripts/setup-drupal-settings.sh
+  - |
+    #ddev-description:Using optimized config if --redis-optimized
+    redis/scripts/setup-redis-optimized-config.sh
+  - |
+    #ddev-description:Remove redis/scripts if there are no files
+    rmdir redis/scripts 2>/dev/null || true
 
 removal_actions:
   - |

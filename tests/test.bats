@@ -37,6 +37,7 @@ setup() {
 
   export REDIS_MAJOR_VERSION=7
   export HAS_DRUPAL_SETTINGS=false
+  export HAS_OPTIMIZED_CONFIG=false
   export RUN_BGSAVE=false
 }
 
@@ -52,6 +53,17 @@ health_checks() {
     assert_success
   else
     assert_file_not_exist web/sites/default/settings.ddev.redis.php
+  fi
+
+  if [ "${HAS_OPTIMIZED_CONFIG}" = "true" ]; then
+    assert_file_exist .ddev/docker-compose.redis_extra.yaml
+    assert_file_exist .ddev/redis/snapshots.conf
+
+    run grep -F "${PROJNAME}" .ddev/redis/snapshots.conf
+    assert_output "dbfilename ${PROJNAME}.rdb"
+  else
+    assert_file_not_exist .ddev/docker-compose.redis_extra.yaml
+    assert_file_not_exist .ddev/redis/snapshots.conf
   fi
 
   run ddev redis-cli "KEYS \*"
@@ -127,6 +139,29 @@ teardown() {
 
   echo "# ddev add-on get ${GITHUB_REPO} with project ${PROJNAME} in $(pwd)" >&3
   run ddev add-on get "${GITHUB_REPO}"
+  assert_success
+
+  run ddev restart -y
+  assert_success
+  health_checks
+}
+
+# bats test_tags=optimized
+@test "install from directory with optimized config" {
+  set -eu -o pipefail
+
+  export HAS_OPTIMIZED_CONFIG=true
+  export RUN_BGSAVE=true
+
+  run ddev start -y
+  assert_success
+
+  run ddev dotenv set .ddev/.env.redis --redis-optimized=true
+  assert_success
+  assert_file_exist .ddev/.env.redis
+
+  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
+  run ddev add-on get "${DIR}"
   assert_success
 
   run ddev restart -y
