@@ -55,15 +55,31 @@ health_checks() {
     assert_file_not_exist web/sites/default/settings.ddev.redis.php
   fi
 
-  if [ "${HAS_OPTIMIZED_CONFIG}" = "true" ]; then
-    assert_file_exist .ddev/docker-compose.redis_extra.yaml
-    assert_file_exist .ddev/redis/snapshots.conf
+  assert_file_exist .ddev/redis/redis.conf
+
+  redis_optimized_files=(
+    .ddev/docker-compose.redis_extra.yaml
+    .ddev/redis/advanced.conf
+    .ddev/redis/append.conf
+    .ddev/redis/general.conf
+    .ddev/redis/io.conf
+    .ddev/redis/memory.conf
+    .ddev/redis/network.conf
+    .ddev/redis/security.conf
+    .ddev/redis/snapshots.conf
+  )
+
+  if [ "$HAS_OPTIMIZED_CONFIG" = "true" ]; then
+    for file in "${redis_optimized_files[@]}"; do
+      assert_file_exist "$file"
+    done
 
     run grep -F "${PROJNAME}" .ddev/redis/snapshots.conf
     assert_output "dbfilename ${PROJNAME}.rdb"
   else
-    assert_file_not_exist .ddev/docker-compose.redis_extra.yaml
-    assert_file_not_exist .ddev/redis/snapshots.conf
+    for file in "${redis_optimized_files[@]}"; do
+      assert_file_not_exist "$file"
+    done
   fi
 
   run ddev redis-cli "KEYS \*"
