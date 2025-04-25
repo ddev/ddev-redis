@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+#ddev-generated
+## Description: Flush all cache inside the Redis container
+## Usage: redis-flush
+## Example: "ddev redis-flush"
+
+redis-cli -a "" --no-auth-warning FLUSHALL ASYNC
