@@ -27,6 +27,7 @@ After installation, make sure to commit the `.ddev` directory to version control
 
 | Command | Description |
 | ------- | ----------- |
+| `ddev redis-backend` | Use a different key-value store for Redis |
 | `ddev redis-cli` | Run `redis-cli` inside the Redis container |
 | `ddev redis` | Alias for `ddev redis-cli` |
 | `ddev redis-flush` | Flush all cache inside the Redis container |
@@ -34,6 +35,26 @@ After installation, make sure to commit the `.ddev` directory to version control
 | `ddev logs -s redis` | Check Redis logs |
 
 Redis is available inside Docker containers with `redis:6379`.
+
+### Swappable Redis backends
+
+Use the `ddev redis-backend` command to swap between Redis backends:
+
+| Command | Docker Image |
+|--------------------------------------|-----------------------------------------------|
+| `ddev redis-backend redis`           | `redis:7`                                     |
+| `ddev redis-backend redis-alpine`    | `redis:7-alpine`                              |
+| `ddev redis-backend valkey`          | `valkey/valkey:8`                             |
+| `ddev redis-backend valkey-alpine`   | `valkey/valkey:8-alpine`                      |
+| `ddev redis-backend dragonfly`       | `docker.dragonflydb.io/dragonflydb/dragonfly` |
+| `ddev redis-backend garnet`          | `ghcr.io/microsoft/garnet`                    |
+| `ddev redis-backend kvrocks`         | `apache/kvrocks`                              |
+| `ddev redis-backend <image>`         | `<image>` (specify your custom Redis image)   |
+
+> [!TIP]
+> Add `optimize` or `optimized` after the command to enable optimized Redis configuration.
+>
+> Example: `ddev redis-backend redis optimize`
 
 ## Redis Credentials
 
