@@ -91,6 +91,6 @@ All customization options (use with caution):
 
 **Contributed by [@hussainweb](https://github.com/hussainweb) based on the original [ddev-contrib recipe](https://github.com/ddev/ddev-contrib/tree/master/docker-compose-services/redis) by [@gormus](https://github.com/gormus)**
 
-**Optimized config from `ddev/ddev-redis-7` conributed by [@seebeen](https://github.com/seebeen)**
+**Optimized config from `ddev/ddev-redis-7` contributed by [@seebeen](https://github.com/seebeen)**
 
 **Maintained by the [DDEV team](https://ddev.com/support-ddev/)**
