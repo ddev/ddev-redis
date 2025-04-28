@@ -6,4 +6,8 @@
 ## Example: "ddev redis-cli KEYS *" or "ddev redis-cli INFO" or "ddev redis-cli --version"
 ## Aliases: redis
 
-redis-cli -p 6379 -h redis $@
+if [ -f /etc/redis/conf/security.conf ]; then
+  redis-cli -p 6379 -h redis -a redis --no-auth-warning $@
+else
+  redis-cli -p 6379 -h redis $@
+fi
