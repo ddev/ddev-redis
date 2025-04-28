@@ -37,10 +37,9 @@ Redis is available inside Docker containers with `redis:6379`.
 
 ## Redis Credentials
 
-| Field    | Value                 |
-|----------|-----------------------|
-| Username | `redis`               |
-| Password | `` (empty by default) |
+By default, no authentication is required.
+
+If you want to set up ACLs, refer to the [Redis documentation](https://redis.io/docs/latest/operate/oss_and_stack/management/security/acl/).
 
 ## Advanced Customization
 

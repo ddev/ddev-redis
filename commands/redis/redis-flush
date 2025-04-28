@@ -5,4 +5,4 @@
 ## Usage: redis-flush
 ## Example: "ddev redis-flush"
 
-redis-cli -a "" --no-auth-warning FLUSHALL ASYNC
+redis-cli -p 6379 -h redis FLUSHALL ASYNC

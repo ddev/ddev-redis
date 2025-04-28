@@ -6,5 +6,4 @@
 ## Example: "ddev redis-cli KEYS *" or "ddev redis-cli INFO" or "ddev redis-cli --version"
 ## Aliases: redis
 
-redis-cli -p 6379 -h redis -a "" --no-auth-warning "$@"
-
+redis-cli -p 6379 -h redis $@
