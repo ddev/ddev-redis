@@ -46,9 +46,6 @@ Use the `ddev redis-backend` command to swap between Redis backends:
 | `ddev redis-backend redis-alpine`    | `redis:7-alpine`                              |
 | `ddev redis-backend valkey`          | `valkey/valkey:8`                             |
 | `ddev redis-backend valkey-alpine`   | `valkey/valkey:8-alpine`                      |
-| `ddev redis-backend dragonfly`       | `docker.dragonflydb.io/dragonflydb/dragonfly` |
-| `ddev redis-backend garnet`          | `ghcr.io/microsoft/garnet`                    |
-| `ddev redis-backend kvrocks`         | `apache/kvrocks`                              |
 | `ddev redis-backend <image>`         | `<image>` (specify your custom Redis image)   |
 
 > [!TIP]

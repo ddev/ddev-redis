@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ddev-generated
+#ddev-generated
 
 ## Description: Use a different key-value store for Redis
 ## Usage: redis-backend <image> [optimize]
@@ -14,15 +14,14 @@ function show_help() {
 Usage: ddev redis-backend <image|alias> [optimize]
 
 Choose from predefined aliases, or provide any Redis-compatible Docker image.
+Note that not every Docker image can work right away, and you may need to override
+the "command:" in the docker-compose.redis_extra.yaml file
 
 Available aliases:
   redis            redis:7
   redis-alpine     redis:7-alpine
   valkey           valkey/valkey:8
   valkey-alpine    valkey/valkey:8-alpine
-  dragonfly        docker.dragonflydb.io/dragonflydb/dragonfly
-  garnet           ghcr.io/microsoft/garnet
-  kvrocks          apache/kvrocks
 
 Custom backend:
   You can specify any Docker image, e.g.:
@@ -86,18 +85,6 @@ case "$REDIS_DOCKER_IMAGE" in
   valkey-alpine)
     NAME="Valkey 8 Alpine"
     REDIS_DOCKER_IMAGE="valkey/valkey:8-alpine"
-    ;;
-  dragonfly)
-    NAME="Dragonfly"
-    REDIS_DOCKER_IMAGE="docker.dragonflydb.io/dragonflydb/dragonfly"
-    ;;
-  garnet)
-    NAME="Garnet"
-    REDIS_DOCKER_IMAGE="ghcr.io/microsoft/garnet"
-    ;;
-  kvrocks)
-    NAME="Kvrocks"
-    REDIS_DOCKER_IMAGE="apache/kvrocks"
     ;;
   ""|--help|-h)
     show_help
