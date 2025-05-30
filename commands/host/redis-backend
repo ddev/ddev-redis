@@ -103,10 +103,13 @@ use_docker_image
 echo
 echo "✅ Redis backend: $REDIS_DOCKER_IMAGE"
 if [[ "$REDIS_CONFIG" == "optimized" || "$REDIS_CONFIG" == "optimize" ]]; then
-  echo "👍 Redis config: optimized"
+  echo "⚙️ Redis config: optimized"
 else
-  echo "👍 Redis config: default"
+  echo "⚙️ Redis config: default"
 fi
 
 echo
-echo "📝 Make sure to commit the '.ddev' directory to version control"
+echo "📝 Commit the '.ddev' directory to version control"
+
+echo
+echo "🔄 Redis config available after 'ddev restart'"

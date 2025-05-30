@@ -7,8 +7,8 @@
 # For local tests, install bats-core, bats-assert, bats-file, bats-support
 # And run this in the add-on root directory:
 #   bats ./tests/test.bats
-# To exclude release tests:
-#   bats ./tests/test.bats --filter-tags '!release'
+# To run specific test:
+#   bats ./tests/test.bats --filter-tags 'laravel-redis'
 # For debugging:
 #   bats ./tests/test.bats --show-output-of-passing-tests --verbose-run --print-output-on-failure
 
@@ -39,6 +39,7 @@ setup() {
   export HAS_DRUPAL_SETTINGS=false
   export HAS_OPTIMIZED_CONFIG=false
   export RUN_BGSAVE=false
+  export CHECK_REDIS_READ_WRITE=false
 }
 
 health_checks() {
@@ -94,6 +95,47 @@ health_checks() {
   assert_success
   assert_line --index 2 "errors: 0, replies: 10000"
 
+  # check if Redis really works with read/write from the app
+  if [ "${CHECK_REDIS_READ_WRITE}" = "true" ]; then
+    run curl -sf https://${PROJNAME}.ddev.site/set/foo/bar
+    assert_success
+    assert_output "bar"
+
+    run curl -sf https://${PROJNAME}.ddev.site/set/test/value
+    assert_success
+    assert_output "value"
+
+    run curl -sf https://${PROJNAME}.ddev.site/get/foo
+    assert_success
+    assert_output "bar"
+
+    run curl -sf https://${PROJNAME}.ddev.site/get/test
+    assert_success
+    assert_output "value"
+
+    # double-check the value to make sure nothing has been deleted
+    run curl -sf https://${PROJNAME}.ddev.site/get/foo
+    assert_success
+    assert_output "bar"
+
+    run curl -sf https://${PROJNAME}.ddev.site/get/test
+    assert_success
+    assert_output "value"
+
+    run ddev redis-flush
+    assert_success
+    assert_output "OK"
+
+    # after flushing, nothing should be here
+    run curl -sf https://${PROJNAME}.ddev.site/get/foo
+    assert_success
+    assert_output ""
+
+    run curl -sf https://${PROJNAME}.ddev.site/get/test
+    assert_success
+    assert_output ""
+  fi
+
   if [ "${RUN_BGSAVE}" != "true" ]; then
     return
   fi
@@ -130,6 +172,30 @@ teardown() {
   [ "${TESTDIR}" != "" ] && rm -rf ${TESTDIR}
 }
 
+laravel_redis_cache_setup() {
+  export CHECK_REDIS_READ_WRITE=true
+
+  run ddev composer create laravel/laravel
+  assert_success
+
+  run ddev dotenv set .env --cache-store=redis --redis-host=redis
+  assert_success
+
+  cat <<'EOF' >routes/web.php
+<?php
+use Illuminate\Support\Facades\Route;
+Route::get('/set/{key}/{value}', function ($key, $value) {
+    cache()->set($key, $value);
+    echo $value;
+});
+Route::get('/get/{key}', function ($key) {
+    echo cache()->get($key);
+});
+EOF
+  assert_file_exist routes/web.php
+}
+
+# bats test_tags=default
 @test "install from directory" {
   set -eu -o pipefail
 
@@ -147,22 +213,7 @@ teardown() {
   health_checks
 }
 
-# bats test_tags=release
-@test "install from release" {
-  set -eu -o pipefail
-  run ddev start -y
-  assert_success
-
-  echo "# ddev add-on get ${GITHUB_REPO} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${GITHUB_REPO}"
-  assert_success
-
-  run ddev restart -y
-  assert_success
-  health_checks
-}
-
-# bats test_tags=optimized
+# bats test_tags=default-optimized
 @test "install from directory with optimized config" {
   set -eu -o pipefail
 
@@ -185,6 +236,7 @@ teardown() {
   health_checks
 }
 
+# bats test_tags=drupal
 @test "Drupal installation" {
   set -eu -o pipefail
 
@@ -204,19 +256,84 @@ teardown() {
   health_checks
 }
 
-@test "Laravel installation with redis:6" {
+# bats test_tags=laravel-redis
+@test "Laravel installation: ddev redis-backend redis" {
   set -eu -o pipefail
 
-  export REDIS_MAJOR_VERSION=6
-
-  run ddev config --project-type=laravel --docroot=web
-  assert_success
-  run ddev start -y
+  run ddev config --project-type=laravel --docroot=public
   assert_success
 
-  run ddev dotenv set .ddev/.env.redis --redis-docker-image=redis:${REDIS_MAJOR_VERSION}
+  laravel_redis_cache_setup
+
+  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
+  run ddev add-on get "${DIR}"
   assert_success
-  assert_file_exist .ddev/.env.redis
+
+  run ddev redis-backend redis
+  assert_success
+
+  run ddev restart -y
+  assert_success
+  health_checks
+}
+
+# bats test_tags=laravel-redis-alpine-optimized
+@test "Laravel installation: ddev redis-backend redis-alpine optimized" {
+  set -eu -o pipefail
+
+  export HAS_OPTIMIZED_CONFIG=true
+
+  run ddev config --project-type=laravel --docroot=public
+  assert_success
+
+  laravel_redis_cache_setup
+
+  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
+  run ddev add-on get "${DIR}"
+  assert_success
+
+  run ddev redis-backend redis-alpine optimized
+  assert_success
+
+  run ddev restart -y
+  assert_success
+  health_checks
+}
+
+# bats test_tags=laravel-valkey
+@test "Laravel installation: ddev redis-backend valkey" {
+  set -eu -o pipefail
+
+  run ddev config --project-type=laravel --docroot=public
+  assert_success
+
+  laravel_redis_cache_setup
+
+  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
+  run ddev add-on get "${DIR}"
+  assert_success
+
+  run ddev redis-backend valkey
+  assert_success
+
+  run ddev restart -y
+  assert_success
+  health_checks
+}
+
+# bats test_tags=laravel-valkey-alpine-optimized
+@test "Laravel installation: ddev redis-backend valkey-alpine optimized" {
+  set -eu -o pipefail
+
+  export HAS_OPTIMIZED_CONFIG=true
+
+  run ddev config --project-type=laravel --docroot=public
+  assert_success
+
+  laravel_redis_cache_setup
+
+  run ddev redis-backend valkey-alpine optimized
+  assert_success
 
   echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
   run ddev add-on get "${DIR}"
@@ -227,6 +344,30 @@ teardown() {
   health_checks
 }
 
+# bats test_tags=laravel-redis-6
+@test "Laravel installation: ddev redis-backend redis:6" {
+  set -eu -o pipefail
+
+  export REDIS_MAJOR_VERSION=6
+
+  run ddev config --project-type=laravel --docroot=public
+  assert_success
+
+  laravel_redis_cache_setup
+
+  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
+  run ddev add-on get "${DIR}"
+  assert_success
+
+  run ddev redis-backend redis:${REDIS_MAJOR_VERSION}
+  assert_success
+
+  run ddev restart -y
+  assert_success
+  health_checks
+}
+
+# bats test_tags=drupal-7
 @test "Drupal 7 installation" {
   set -eu -o pipefail
 
@@ -247,6 +388,7 @@ teardown() {
   health_checks
 }
 
+# bats test_tags=drupal-no-settings
 @test "Drupal installation without settings management" {
   set -eu -o pipefail
 
