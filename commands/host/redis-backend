@@ -66,7 +66,8 @@ function check_docker_image() {
 
 function use_docker_image() {
   [[ "$REDIS_DOCKER_IMAGE" != "redis:7" ]] && ddev dotenv set .ddev/.env.redis --redis-docker-image="$REDIS_DOCKER_IMAGE"
-  ddev add-on get ddev/ddev-redis
+  REPO=$(ddev add-on list --installed -j 2>/dev/null | docker run -i --rm ddev/ddev-utilities jq -r '.raw[] | select(.Name=="redis") | .Repository // empty' 2>/dev/null)
+  ddev add-on get "${REPO:-ddev/ddev-redis}"
 }
 
 case "$REDIS_DOCKER_IMAGE" in

@@ -181,6 +181,11 @@ laravel_redis_cache_setup() {
   run ddev dotenv set .env --cache-store=redis --redis-host=redis
   assert_success
 
+  if [ "${HAS_OPTIMIZED_CONFIG}" = "true" ]; then
+    run ddev dotenv set .env --redis-password=redis
+    assert_success
+  fi
+
   cat <<'EOF' >routes/web.php
 <?php
 use Illuminate\Support\Facades\Route;
@@ -332,11 +337,11 @@ EOF
 
   laravel_redis_cache_setup
 
-  run ddev redis-backend valkey-alpine optimized
-  assert_success
-
   echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
   run ddev add-on get "${DIR}"
+  assert_success
+
+  run ddev redis-backend valkey-alpine optimized
   assert_success
 
   run ddev restart -y
