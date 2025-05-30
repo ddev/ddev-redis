@@ -27,6 +27,18 @@ jobs:
     strategy:
       matrix:
         ddev_version: [stable, HEAD]
+        bats_tag: [
+          "default",
+          "default-optimized",
+          "drupal",
+          "laravel-redis",
+          "laravel-redis-alpine-optimized",
+          "laravel-valkey",
+          "laravel-valkey-alpine-optimized",
+          "laravel-redis-6",
+          "drupal-7",
+          "drupal-no-settings"
+        ]
       fail-fast: false
 
     runs-on: ubuntu-latest
@@ -39,3 +51,4 @@ jobs:
           debug_enabled: ${{ github.event.inputs.debug_enabled }}
           addon_repository: ${{ env.GITHUB_REPOSITORY }}
           addon_ref: ${{ env.GITHUB_REF }}
+          test_command: bats tests --filter-tags ${{ matrix.bats_tag }}

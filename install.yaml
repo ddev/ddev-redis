@@ -14,6 +14,7 @@ project_files:
   - redis/network.conf
   - redis/security.conf
   - redis/snapshots.conf
+  - commands/host/redis-backend
   - commands/redis/redis-cli
   - commands/redis/redis-flush
 

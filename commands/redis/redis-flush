@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 #ddev-generated
 ## Description: Flush all cache inside the Redis container
