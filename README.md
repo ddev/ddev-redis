@@ -36,6 +36,29 @@ After installation, make sure to commit the `.ddev` directory to version control
 
 Redis is available inside Docker containers with `redis:6379`.
 
+## What makes the optimized config different?
+
+The default config only uses the [redis.conf](./redis/redis.conf) file.
+
+The optimized config uses all `*.conf` files in the [redis](./redis) directory except `redis.conf`.
+
+It uses *hardened* settings ready for production, like enabling Redis credentials.
+
+You can read each config file to see the exact differences.
+
+## Redis Credentials
+
+By default, there is no authentication.
+
+If you have the optimized config enabled, the credentials are:
+
+| Field    | Value   |
+|----------|---------|
+| Username | `redis` |
+| Password | `redis` |
+
+For more information about ACLs, see the [Redis documentation](https://redis.io/docs/latest/operate/oss_and_stack/management/security/acl/).
+
 ### Swappable Redis backends
 
 Use the `ddev redis-backend` command to swap between Redis backends:
@@ -52,19 +75,6 @@ Use the `ddev redis-backend` command to swap between Redis backends:
 > Add `optimize` or `optimized` after the command to enable optimized Redis configuration.
 >
 > Example: `ddev redis-backend redis optimize`
-
-## Redis Credentials
-
-By default, no authentication is required.
-
-If you have the optimized config enabled (`ddev dotenv set .ddev/.env.redis --redis-optimized=true`), the credentials are:
-
-| Field    | Value   |
-|----------|---------|
-| Username | `redis` |
-| Password | `redis` |
-
-For more information about ACLs, see the [Redis documentation](https://redis.io/docs/latest/operate/oss_and_stack/management/security/acl/).
 
 ## Advanced Customization
 
