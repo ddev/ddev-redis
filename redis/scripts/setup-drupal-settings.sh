@@ -23,6 +23,6 @@ SETTINGS_FILE_NAME="${DDEV_APPROOT}/${DDEV_DOCROOT}/sites/default/settings.php"
 echo "Settings file name: ${SETTINGS_FILE_NAME}"
 grep -qF 'settings.ddev.redis.php' $SETTINGS_FILE_NAME || echo "
 // Include settings required for Redis cache.
-if ((file_exists(__DIR__ . '/settings.ddev.redis.php') && getenv('IS_DDEV_PROJECT') == 'true')) {
+if (getenv('IS_DDEV_PROJECT') == 'true' && file_exists(__DIR__ . '/settings.ddev.redis.php')) {
   include __DIR__ . '/settings.ddev.redis.php';
 }" >> $SETTINGS_FILE_NAME
