@@ -31,7 +31,6 @@ post_install_actions:
     #ddev-description:Remove redis/scripts if there are no files
     rmdir redis/scripts 2>/dev/null || true
   - |
-    #ddev-nodisplay
     #ddev-description:Remove old `redis` command from `ddev-redis-7`
     if grep "#ddev-generated" $DDEV_APPROOT/.ddev/commands/redis/redis > /dev/null 2>&1; then
       rm -f "$DDEV_APPROOT/.ddev/commands/redis/redis"
@@ -39,5 +38,17 @@ post_install_actions:
 
 removal_actions:
   - |
-    #ddev-description:Remove redis settings for Drupal 9+ if applicable
-    rm -f "${DDEV_APPROOT}/${DDEV_DOCROOT}/sites/default/settings.ddev.redis.php"
+    #ddev-description:Remove redis settings if applicable
+    files=(
+      "${DDEV_APPROOT}/${DDEV_DOCROOT}/sites/default/settings.ddev.redis.php"
+      "${DDEV_APPROOT}/.ddev/docker-compose.redis_extra.yaml"
+    )
+    for file in "${files[@]}"; do
+      if [ -f "$file" ]; then
+        if grep -q '#ddev-generated' "$file"; then
+          rm -f "$file"
+        else
+          echo "Unwilling to remove '$file' because it does not have #ddev-generated in it; you can manually delete it if it is safe to delete."
+        fi
+      fi
+    done
