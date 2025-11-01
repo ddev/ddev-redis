@@ -7,7 +7,7 @@
 ## Aliases: redis
 
 if [ -f /etc/redis/conf/security.conf ]; then
-  redis-cli -p 6379 -h redis -a redis --no-auth-warning $@
+  redis-cli -p 6379 -h "${REDIS_HOSTNAME:-redis}" -a redis --no-auth-warning $@
 else
-  redis-cli -p 6379 -h redis $@
+  redis-cli -p 6379 -h "${REDIS_HOSTNAME:-redis}" $@
 fi

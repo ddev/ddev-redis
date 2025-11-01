@@ -6,7 +6,7 @@
 ## Example: "ddev redis-flush"
 
 if [ -f /etc/redis/conf/security.conf ]; then
-  redis-cli -p 6379 -h redis -a redis --no-auth-warning FLUSHALL ASYNC
+  redis-cli -p 6379 -h "${REDIS_HOSTNAME:-redis}" -a redis --no-auth-warning FLUSHALL ASYNC
 else
-  redis-cli -p 6379 -h redis FLUSHALL ASYNC
+  redis-cli -p 6379 -h "${REDIS_HOSTNAME:-redis}" FLUSHALL ASYNC
 fi

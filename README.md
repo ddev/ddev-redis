@@ -113,6 +113,7 @@ All customization options (use with caution):
 | Variable | Flag | Default |
 | -------- | ---- | ------- |
 | `REDIS_DOCKER_IMAGE` | `--redis-docker-image` | `redis:7` |
+| `REDIS_HOSTNAME` | `--redis-hostname` | `redis` |
 | `REDIS_OPTIMIZED` | `--redis-optimized` | `false` (`true`/`false`) |
 
 ## Credits

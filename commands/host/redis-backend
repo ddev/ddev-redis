@@ -44,6 +44,11 @@ function optimize_config() {
   ddev dotenv set .ddev/.env.redis --redis-optimized=true
 }
 
+function change_hostname() {
+  [[ "${REDIS_HOSTNAME:-}" == "" ]] && return
+  ddev dotenv set .ddev/.env.redis --redis-hostname="$REDIS_HOSTNAME"
+}
+
 function cleanup() {
   rm -f "$DDEV_APPROOT/.ddev/.env.redis"
   rm -rf "$DDEV_APPROOT/.ddev/redis/"
@@ -82,10 +87,12 @@ case "$REDIS_DOCKER_IMAGE" in
   valkey)
     NAME="Valkey 8"
     REDIS_DOCKER_IMAGE="valkey/valkey:8"
+    REDIS_HOSTNAME="valkey"
     ;;
   valkey-alpine)
     NAME="Valkey 8 Alpine"
     REDIS_DOCKER_IMAGE="valkey/valkey:8-alpine"
+    REDIS_HOSTNAME="valkey"
     ;;
   ""|--help|-h)
     show_help
@@ -99,6 +106,7 @@ esac
 check_docker_image
 cleanup
 optimize_config
+change_hostname
 use_docker_image
 
 echo
