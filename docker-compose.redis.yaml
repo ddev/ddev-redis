@@ -17,6 +17,12 @@ services:
       - "./redis:/etc/redis/conf"
       - "redis:/data"
     command: /etc/redis/conf/redis.conf
+    x-ddev:
+      describe-url-port: |
+        Backend: ${REDIS_DOCKER_IMAGE:-redis:7}
+      describe-info: |
+        User: default
+        Pass: <none>
 
 volumes:
   redis:

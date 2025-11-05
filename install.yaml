@@ -18,7 +18,7 @@ project_files:
   - commands/redis/redis-cli
   - commands/redis/redis-flush
 
-ddev_version_constraint: '>= v1.24.3'
+ddev_version_constraint: '>= v1.24.10'
 
 post_install_actions:
   - |

@@ -77,10 +77,22 @@ health_checks() {
 
     run grep -F "${PROJNAME}" .ddev/redis/snapshots.conf
     assert_output "dbfilename ${PROJNAME}.rdb"
+
+    run ddev describe
+    assert_success
+    assert_output --partial "Backend:"
+    assert_output --partial "User: redis"
+    assert_output --partial "Pass: redis"
   else
     for file in "${redis_optimized_files[@]}"; do
       assert_file_not_exist "$file"
     done
+
+    run ddev describe
+    assert_success
+    assert_output --partial "Backend:"
+    assert_output --partial "User: default"
+    assert_output --partial "Pass: <none>"
   fi
 
   run ddev redis-cli "KEYS \*"

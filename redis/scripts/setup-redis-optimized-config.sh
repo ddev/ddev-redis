@@ -65,6 +65,10 @@ services:
         reservations:
           cpus: "1.5"
           memory: "512M"
+    x-ddev:
+      describe-info: |
+        User: redis
+        Pass: redis
 EOF
 fi
 
