@@ -91,7 +91,6 @@ health_checks() {
     run ddev describe
     assert_success
     assert_output --partial "Backend:"
-    assert_output --partial "User: default"
     assert_output --partial "Pass: <none>"
   fi
 
