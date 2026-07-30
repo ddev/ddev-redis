@@ -65,8 +65,8 @@ Use the `ddev redis-backend` command to swap between Redis backends:
 
 | Command | Docker Image |
 |--------------------------------------|-----------------------------------------------|
-| `ddev redis-backend redis`           | `redis:7`                                     |
-| `ddev redis-backend redis-alpine`    | `redis:7-alpine`                              |
+| `ddev redis-backend redis`           | `redis:8`                                     |
+| `ddev redis-backend redis-alpine`    | `redis:8-alpine`                              |
 | `ddev redis-backend valkey`          | `valkey/valkey:8`                             |
 | `ddev redis-backend valkey-alpine`   | `valkey/valkey:8-alpine`                      |
 | `ddev redis-backend <image>`         | `<image>` (specify your custom Redis image)   |
@@ -96,7 +96,7 @@ Make sure to commit the `.ddev/.env.redis` file to version control.
 To change the used Docker image:
 
 ```bash
-ddev dotenv set .ddev/.env.redis --redis-docker-image=redis:7
+ddev dotenv set .ddev/.env.redis --redis-docker-image=redis:8
 ddev add-on get ddev/ddev-redis
 
 # (optional) if you have an existing Redis volume, delete it to avoid problems with Redis:
@@ -112,7 +112,7 @@ All customization options (use with caution):
 
 | Variable | Flag | Default |
 | -------- | ---- | ------- |
-| `REDIS_DOCKER_IMAGE` | `--redis-docker-image` | `redis:7` |
+| `REDIS_DOCKER_IMAGE` | `--redis-docker-image` | `redis:8` |
 | `REDIS_HOSTNAME` | `--redis-hostname` | `redis` |
 | `REDIS_OPTIMIZED` | `--redis-optimized` | `false` (`true`/`false`) |
 
