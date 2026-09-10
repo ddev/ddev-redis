@@ -27,18 +27,10 @@ jobs:
     strategy:
       matrix:
         ddev_version: [stable, HEAD]
-        bats_tag: [
-          "default",
-          "default-optimized",
-          "drupal",
-          "laravel-redis",
-          "laravel-redis-alpine-optimized",
-          "laravel-valkey",
-          "laravel-valkey-alpine-optimized",
-          "laravel-redis-6",
-          "drupal-7",
-          "drupal-no-settings"
-        ]
+        # The "release" tests only run on schedule and workflow_dispatch.
+        bats_tag: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+          && fromJSON('["default", "drupal", "laravel-redis", "laravel-valkey", "release"]')
+          || fromJSON('["default", "drupal", "laravel-redis", "laravel-valkey"]') }}
       fail-fast: false
 
     runs-on: ubuntu-latest
