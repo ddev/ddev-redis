@@ -229,7 +229,7 @@ EOF
   health_checks
 }
 
-# bats test_tags=default-optimized
+# bats test_tags=default
 @test "install from directory with optimized config" {
   set -eu -o pipefail
 
@@ -245,6 +245,47 @@ EOF
 
   echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
   run ddev add-on get "${DIR}"
+  assert_success
+
+  run ddev restart -y
+  assert_success
+  health_checks
+}
+
+# bats test_tags=release
+@test "install from release" {
+  set -eu -o pipefail
+
+  export RUN_BGSAVE=true
+
+  run ddev start -y
+  assert_success
+
+  echo "# ddev add-on get ${GITHUB_REPO} with project ${PROJNAME} in $(pwd)" >&3
+  run ddev add-on get "${GITHUB_REPO}"
+  assert_success
+
+  run ddev restart -y
+  assert_success
+  health_checks
+}
+
+# bats test_tags=release
+@test "install from release with optimized config" {
+  set -eu -o pipefail
+
+  export HAS_OPTIMIZED_CONFIG=true
+  export RUN_BGSAVE=true
+
+  run ddev start -y
+  assert_success
+
+  run ddev dotenv set .ddev/.env.redis --redis-optimized=true
+  assert_success
+  assert_file_exist .ddev/.env.redis
+
+  echo "# ddev add-on get ${GITHUB_REPO} with project ${PROJNAME} in $(pwd)" >&3
+  run ddev add-on get "${GITHUB_REPO}"
   assert_success
 
   run ddev restart -y
@@ -293,7 +334,7 @@ EOF
   health_checks
 }
 
-# bats test_tags=laravel-redis-alpine-optimized
+# bats test_tags=laravel-redis
 @test "Laravel installation: ddev redis-backend redis-alpine optimized" {
   set -eu -o pipefail
 
@@ -337,7 +378,7 @@ EOF
   health_checks
 }
 
-# bats test_tags=laravel-valkey-alpine-optimized
+# bats test_tags=laravel-valkey
 @test "Laravel installation: ddev redis-backend valkey-alpine optimized" {
   set -eu -o pipefail
 
@@ -360,7 +401,7 @@ EOF
   health_checks
 }
 
-# bats test_tags=laravel-redis-6
+# bats test_tags=laravel-redis
 @test "Laravel installation: ddev redis-backend redis:6" {
   set -eu -o pipefail
 
@@ -383,7 +424,7 @@ EOF
   health_checks
 }
 
-# bats test_tags=drupal-7
+# bats test_tags=drupal
 @test "Drupal 7 installation" {
   set -eu -o pipefail
 
@@ -404,7 +445,7 @@ EOF
   health_checks
 }
 
-# bats test_tags=drupal-no-settings
+# bats test_tags=drupal
 @test "Drupal installation without settings management" {
   set -eu -o pipefail
 
