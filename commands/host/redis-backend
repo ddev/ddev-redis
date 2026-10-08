@@ -5,9 +5,11 @@
 ## Usage: redis-backend <image> [optimize]
 ## Example: ddev redis-backend redis-alpine optimize
 
+# Keep in sync with the default image in docker-compose.redis.yaml
+DEFAULT_REDIS_DOCKER_IMAGE="redis:8"
+
 REDIS_DOCKER_IMAGE=${1:-}
 REDIS_CONFIG=${2:-}
-NAME=$REDIS_DOCKER_IMAGE
 
 function show_help() {
   cat <<EOF
@@ -18,14 +20,14 @@ Note that not every Docker image can work right away, and you may need to overri
 the "command:" in the docker-compose.redis_extra.yaml file
 
 Available aliases:
-  redis            redis:7
-  redis-alpine     redis:7-alpine
-  valkey           valkey/valkey:8
-  valkey-alpine    valkey/valkey:8-alpine
+  redis            ${DEFAULT_REDIS_DOCKER_IMAGE}
+  redis-alpine     ${DEFAULT_REDIS_DOCKER_IMAGE}-alpine
+  valkey           valkey/valkey:9
+  valkey-alpine    valkey/valkey:9-alpine
 
 Custom backend:
   You can specify any Docker image, e.g.:
-    ddev redis-backend redis:6
+    ddev redis-backend redis:7
 
 Optional:
   optimize         Apply additional Redis configuration with resource limits
@@ -34,7 +36,7 @@ Optional:
 Examples:
   ddev redis-backend redis-alpine optimize
   ddev redis-backend valkey
-  ddev redis-backend redis:7.2-alpine
+  ddev redis-backend redis:8.2-alpine
 EOF
   exit 0
 }
@@ -70,55 +72,65 @@ function check_docker_image() {
 }
 
 function use_docker_image() {
-  [[ "$REDIS_DOCKER_IMAGE" != "redis:7" ]] && ddev dotenv set .ddev/.env.redis --redis-docker-image="$REDIS_DOCKER_IMAGE"
-  REPO=$(ddev add-on list --installed -j 2>/dev/null | docker run -i --rm ddev/ddev-utilities jq -r '.raw[] | select(.Name=="redis") | .Repository // empty' 2>/dev/null)
-  ddev add-on get "${REPO:-ddev/ddev-redis}"
+  [[ "$REDIS_DOCKER_IMAGE" != "$DEFAULT_REDIS_DOCKER_IMAGE" ]] && ddev dotenv set .ddev/.env.redis --redis-docker-image="$REDIS_DOCKER_IMAGE"
+  # Reinstall the same add-on version that is installed now
+  local repo version flags=()
+  IFS='|' read -r repo version < <(ddev add-on list --installed -j 2>/dev/null | docker run -i --rm ddev/ddev-utilities jq -r '.raw[] | select(.Name=="redis") | "\(.Repository // "")|\(.Version // "")"' 2>/dev/null)
+  case "$version" in
+    # installed from a local directory
+    "") ;;
+    pr-*) flags=(--pr "${version#pr-}") ;;
+    v[0-9]*) flags=(--version "$version") ;;
+    # the default branch name, e.g. "main"
+    *) flags=(--default-branch) ;;
+  esac
+  ddev add-on get "${repo:-ddev/ddev-redis}" "${flags[@]}"
 }
 
-case "$REDIS_DOCKER_IMAGE" in
-  redis)
-    NAME="Redis 7"
-    REDIS_DOCKER_IMAGE="redis:7"
-    ;;
-  redis-alpine)
-    NAME="Redis 7 Alpine"
-    REDIS_DOCKER_IMAGE="redis:7-alpine"
-    ;;
-  valkey)
-    NAME="Valkey 8"
-    REDIS_DOCKER_IMAGE="valkey/valkey:8"
-    REDIS_HOSTNAME="valkey"
-    ;;
-  valkey-alpine)
-    NAME="Valkey 8 Alpine"
-    REDIS_DOCKER_IMAGE="valkey/valkey:8-alpine"
-    REDIS_HOSTNAME="valkey"
-    ;;
-  ""|--help|-h)
-    show_help
-    ;;
-  *)
-    NAME="$REDIS_DOCKER_IMAGE"
-    # Allow unknown image, nothing to override
-    ;;
-esac
+# "ddev add-on get" overwrites this file while it is running, so keep the main flow
+# in a block, which bash reads completely before running it
+{
+  case "$REDIS_DOCKER_IMAGE" in
+    redis)
+      REDIS_DOCKER_IMAGE="$DEFAULT_REDIS_DOCKER_IMAGE"
+      ;;
+    redis-alpine)
+      REDIS_DOCKER_IMAGE="${DEFAULT_REDIS_DOCKER_IMAGE}-alpine"
+      ;;
+    valkey)
+      REDIS_DOCKER_IMAGE="valkey/valkey:9"
+      REDIS_HOSTNAME="valkey"
+      ;;
+    valkey-alpine)
+      REDIS_DOCKER_IMAGE="valkey/valkey:9-alpine"
+      REDIS_HOSTNAME="valkey"
+      ;;
+    ""|--help|-h)
+      show_help
+      ;;
+    *)
+      # Allow unknown image, nothing to override
+      ;;
+  esac
 
-check_docker_image
-cleanup
-optimize_config
-change_hostname
-use_docker_image
+  check_docker_image
+  cleanup
+  optimize_config
+  change_hostname
+  use_docker_image
 
-echo
-echo "✅ Redis backend: $REDIS_DOCKER_IMAGE"
-if [[ "$REDIS_CONFIG" == "optimized" || "$REDIS_CONFIG" == "optimize" ]]; then
-  echo "⚙️ Redis config: optimized"
-else
-  echo "⚙️ Redis config: default"
-fi
+  echo
+  echo "✅ Redis backend: $REDIS_DOCKER_IMAGE"
+  if [[ "$REDIS_CONFIG" == "optimized" || "$REDIS_CONFIG" == "optimize" ]]; then
+    echo "⚙️ Redis config: optimized"
+  else
+    echo "⚙️ Redis config: default"
+  fi
 
-echo
-echo "📝 Commit the '.ddev' directory to version control"
+  echo
+  echo "📝 Commit the '.ddev' directory to version control"
 
-echo
-echo "🔄 Redis config available after 'ddev restart'"
+  echo
+  echo "🔄 Redis config available after 'ddev restart'"
+  exit 0
+}

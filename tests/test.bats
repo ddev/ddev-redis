@@ -7,6 +7,8 @@
 # For local tests, install bats-core, bats-assert, bats-file, bats-support
 # And run this in the add-on root directory:
 #   bats ./tests/test.bats
+# To exclude release tests:
+#   bats ./tests/test.bats --filter-tags '!release'
 # To run specific test:
 #   bats ./tests/test.bats --filter-tags 'laravel-redis'
 # For debugging:
@@ -35,17 +37,110 @@ setup() {
   run ddev config --project-name="${PROJNAME}" --project-tld=ddev.site
   assert_success
 
-  export REDIS_MAJOR_VERSION=7
+  # The default image from docker-compose.redis.yaml, e.g. "redis:8"
+  export DEFAULT_REDIS_DOCKER_IMAGE=$(grep -m1 -oE 'REDIS_DOCKER_IMAGE:-[^}]+' "${DIR}/docker-compose.redis.yaml" | cut -d- -f2-)
+  export DEFAULT_REDIS_MAJOR_VERSION=$(echo "${DEFAULT_REDIS_DOCKER_IMAGE}" | grep -oE ':[0-9]+' | tr -d :)
   export HAS_DRUPAL_SETTINGS=false
   export HAS_OPTIMIZED_CONFIG=false
   export RUN_BGSAVE=false
   export CHECK_REDIS_READ_WRITE=false
 }
 
-health_checks() {
-  run ddev redis-cli INFO
+teardown() {
+  set -eu -o pipefail
+  ddev delete -Oy "${PROJNAME}" >/dev/null 2>&1
+  # Persist TESTDIR if running inside GitHub Actions. Useful for uploading test result artifacts
+  # See example at https://github.com/ddev/github-action-add-on-test#preserving-artifacts
+  if [ -n "${GITHUB_ENV:-}" ]; then
+    [ -e "${GITHUB_ENV:-}" ] && echo "TESTDIR=${HOME}/tmp/${PROJNAME}" >> "${GITHUB_ENV}"
+  else
+    [ "${TESTDIR}" != "" ] && rm -rf "${TESTDIR}"
+  fi
+}
+
+# Usage: install_add_on [source]
+# source defaults to the add-on directory, use "${GITHUB_REPO}" for the latest release
+install_add_on() {
+  local source="${1:-${DIR}}"
+
+  run ddev start -y
   assert_success
-  assert_output --partial "redis_version:$REDIS_MAJOR_VERSION."
+
+  echo "# ddev add-on get ${source} with project ${PROJNAME} in $(pwd)" >&3
+  run ddev add-on get "${source}"
+  assert_success
+}
+
+# Enables the optimized config, must be called before install_add_on
+use_optimized_config() {
+  export HAS_OPTIMIZED_CONFIG=true
+
+  run ddev dotenv set .ddev/.env.redis --redis-optimized=true
+  assert_success
+  assert_file_exist .ddev/.env.redis
+}
+
+# Pins the Docker image, must be called before install_add_on
+use_redis_image() {
+  run ddev dotenv set .ddev/.env.redis --redis-docker-image="$1"
+  assert_success
+}
+
+# Usage: use_redis_backend <image|alias> [optimized]
+use_redis_backend() {
+  if [ "${2:-}" = "optimized" ]; then
+    export HAS_OPTIMIZED_CONFIG=true
+  fi
+
+  run ddev redis-backend "$@"
+  assert_success
+}
+
+# Creates a Laravel project that uses Redis for the cache, with routes to read/write it
+setup_laravel() {
+  export CHECK_REDIS_READ_WRITE=true
+
+  run ddev config --project-type=laravel --docroot=public
+  assert_success
+
+  run ddev composer create laravel/laravel
+  assert_success
+
+  run ddev dotenv set .env --cache-store=redis --redis-host=redis
+  assert_success
+
+  cat <<'EOF' >routes/web.php
+<?php
+use Illuminate\Support\Facades\Route;
+Route::get('/set/{key}/{value}', function ($key, $value) {
+    cache()->set($key, $value);
+    echo $value;
+});
+Route::get('/get/{key}', function ($key) {
+    echo cache()->get($key);
+});
+EOF
+  assert_file_exist routes/web.php
+}
+
+# Usage: assert_redis_version [server] [major_version]
+# server is "redis" or "valkey" (Valkey always reports "redis_version:7.2.4" for compatibility)
+assert_redis_version() {
+  local server="${1:-redis}"
+  local major_version="${2:-${DEFAULT_REDIS_MAJOR_VERSION}}"
+
+  run ddev redis-cli INFO server
+  assert_success
+  assert_output --regexp "${server}_version:${major_version}\."
+}
+
+# Usage: health_checks [server] [major_version]
+# Restarts the project and checks that Redis works, see assert_redis_version for arguments
+health_checks() {
+  run ddev restart -y
+  assert_success
+
+  assert_redis_version "$@"
 
   if [ "${HAS_DRUPAL_SETTINGS}" = "true" ]; then
     assert_file_exist web/sites/default/settings.ddev.redis.php
@@ -108,6 +203,11 @@ health_checks() {
 
   # check if Redis really works with read/write from the app
   if [ "${CHECK_REDIS_READ_WRITE}" = "true" ]; then
+    if [ "${HAS_OPTIMIZED_CONFIG}" = "true" ]; then
+      run ddev dotenv set .env --redis-password=redis
+      assert_success
+    fi
+
     run curl -sf https://${PROJNAME}.ddev.site/set/foo/bar
     assert_success
     assert_output "bar"
@@ -177,296 +277,163 @@ health_checks() {
   assert_output "0"
 }
 
-teardown() {
-  set -eu -o pipefail
-  ddev delete -Oy "${PROJNAME}" >/dev/null 2>&1
-  # Persist TESTDIR if running inside GitHub Actions. Useful for uploading test result artifacts
-  # See example at https://github.com/ddev/github-action-add-on-test#preserving-artifacts
-  if [ -n "${GITHUB_ENV:-}" ]; then
-    [ -e "${GITHUB_ENV:-}" ] && echo "TESTDIR=${HOME}/tmp/${PROJNAME}" >> "${GITHUB_ENV}"
-  else
-    [ "${TESTDIR}" != "" ] && rm -rf "${TESTDIR}"
-  fi
-}
+# Saves the current data, switches to the default image the way an add-on update does
+# for projects without .env.redis, and checks that the data is still there
+upgrade_to_default_image() {
+  run ddev redis-cli DBSIZE
+  assert_success
+  local keys="${output}"
 
-laravel_redis_cache_setup() {
-  export CHECK_REDIS_READ_WRITE=true
+  run ddev redis-cli SAVE
+  assert_success
+  assert_output "OK"
 
-  run ddev composer create laravel/laravel
+  rm -f .ddev/.env.redis
+  install_add_on
+
+  run ddev restart -y
   assert_success
 
-  run ddev dotenv set .env --cache-store=redis --redis-host=redis
+  assert_redis_version
+
+  run ddev redis-cli DBSIZE
   assert_success
-
-  if [ "${HAS_OPTIMIZED_CONFIG}" = "true" ]; then
-    run ddev dotenv set .env --redis-password=redis
-    assert_success
-  fi
-
-  cat <<'EOF' >routes/web.php
-<?php
-use Illuminate\Support\Facades\Route;
-Route::get('/set/{key}/{value}', function ($key, $value) {
-    cache()->set($key, $value);
-    echo $value;
-});
-Route::get('/get/{key}', function ($key) {
-    echo cache()->get($key);
-});
-EOF
-  assert_file_exist routes/web.php
+  assert_output "${keys}"
 }
 
 # bats test_tags=default
 @test "install from directory" {
   set -eu -o pipefail
-
   export RUN_BGSAVE=true
-
-  run ddev start -y
-  assert_success
-
-  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${DIR}"
-  assert_success
-
-  run ddev restart -y
-  assert_success
+  install_add_on
   health_checks
 }
 
 # bats test_tags=default
 @test "install from directory with optimized config" {
   set -eu -o pipefail
-
-  export HAS_OPTIMIZED_CONFIG=true
   export RUN_BGSAVE=true
-
-  run ddev start -y
-  assert_success
-
-  run ddev dotenv set .ddev/.env.redis --redis-optimized=true
-  assert_success
-  assert_file_exist .ddev/.env.redis
-
-  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${DIR}"
-  assert_success
-
-  run ddev restart -y
-  assert_success
+  use_optimized_config
+  install_add_on
   health_checks
+}
+
+# bats test_tags=default
+@test "upgrade from Redis 7 to the default image keeps data" {
+  set -eu -o pipefail
+  use_redis_image redis:7
+  install_add_on
+  health_checks redis 7
+  upgrade_to_default_image
+}
+
+# bats test_tags=default
+@test "ddev redis-backend fails with a non-existent image" {
+  set -eu -o pipefail
+  install_add_on
+
+  run ddev redis-backend ddev/ddev-redis-non-existent-image:latest
+  assert_failure
+  assert_output --partial "Unable to pull ddev/ddev-redis-non-existent-image:latest"
+
+  # Nothing is removed if the image can't be pulled
+  assert_file_exist .ddev/docker-compose.redis.yaml
+  assert_file_exist .ddev/redis/redis.conf
 }
 
 # bats test_tags=release
 @test "install from release" {
   set -eu -o pipefail
-
   export RUN_BGSAVE=true
-
-  run ddev start -y
-  assert_success
-
-  echo "# ddev add-on get ${GITHUB_REPO} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${GITHUB_REPO}"
-  assert_success
-
-  run ddev restart -y
-  assert_success
-  health_checks
+  install_add_on "${GITHUB_REPO}"
+  # The released version may have a different default image
+  health_checks redis "[0-9]+"
 }
 
 # bats test_tags=release
 @test "install from release with optimized config" {
   set -eu -o pipefail
-
-  export HAS_OPTIMIZED_CONFIG=true
   export RUN_BGSAVE=true
-
-  run ddev start -y
-  assert_success
-
-  run ddev dotenv set .ddev/.env.redis --redis-optimized=true
-  assert_success
-  assert_file_exist .ddev/.env.redis
-
-  echo "# ddev add-on get ${GITHUB_REPO} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${GITHUB_REPO}"
-  assert_success
-
-  run ddev restart -y
-  assert_success
-  health_checks
+  use_optimized_config
+  install_add_on "${GITHUB_REPO}"
+  # The released version may have a different default image
+  health_checks redis "[0-9]+"
 }
 
 # bats test_tags=drupal
 @test "Drupal installation" {
   set -eu -o pipefail
-
   export HAS_DRUPAL_SETTINGS=true
-
   run ddev config --project-type=drupal --docroot=web
   assert_success
-  run ddev start -y
-  assert_success
-
-  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${DIR}"
-  assert_success
-
-  run ddev restart -y
-  assert_success
-  health_checks
-}
-
-# bats test_tags=laravel-redis
-@test "Laravel installation: ddev redis-backend redis" {
-  set -eu -o pipefail
-
-  run ddev config --project-type=laravel --docroot=public
-  assert_success
-
-  laravel_redis_cache_setup
-
-  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${DIR}"
-  assert_success
-
-  run ddev redis-backend redis
-  assert_success
-
-  run ddev restart -y
-  assert_success
-  health_checks
-}
-
-# bats test_tags=laravel-redis
-@test "Laravel installation: ddev redis-backend redis-alpine optimized" {
-  set -eu -o pipefail
-
-  export HAS_OPTIMIZED_CONFIG=true
-
-  run ddev config --project-type=laravel --docroot=public
-  assert_success
-
-  laravel_redis_cache_setup
-
-  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${DIR}"
-  assert_success
-
-  run ddev redis-backend redis-alpine optimized
-  assert_success
-
-  run ddev restart -y
-  assert_success
-  health_checks
-}
-
-# bats test_tags=laravel-valkey
-@test "Laravel installation: ddev redis-backend valkey" {
-  set -eu -o pipefail
-
-  run ddev config --project-type=laravel --docroot=public
-  assert_success
-
-  laravel_redis_cache_setup
-
-  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${DIR}"
-  assert_success
-
-  run ddev redis-backend valkey
-  assert_success
-
-  run ddev restart -y
-  assert_success
-  health_checks
-}
-
-# bats test_tags=laravel-valkey
-@test "Laravel installation: ddev redis-backend valkey-alpine optimized" {
-  set -eu -o pipefail
-
-  export HAS_OPTIMIZED_CONFIG=true
-
-  run ddev config --project-type=laravel --docroot=public
-  assert_success
-
-  laravel_redis_cache_setup
-
-  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${DIR}"
-  assert_success
-
-  run ddev redis-backend valkey-alpine optimized
-  assert_success
-
-  run ddev restart -y
-  assert_success
-  health_checks
-}
-
-# bats test_tags=laravel-redis
-@test "Laravel installation: ddev redis-backend redis:6" {
-  set -eu -o pipefail
-
-  export REDIS_MAJOR_VERSION=6
-
-  run ddev config --project-type=laravel --docroot=public
-  assert_success
-
-  laravel_redis_cache_setup
-
-  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${DIR}"
-  assert_success
-
-  run ddev redis-backend redis:${REDIS_MAJOR_VERSION}
-  assert_success
-
-  run ddev restart -y
-  assert_success
+  install_add_on
   health_checks
 }
 
 # bats test_tags=drupal
 @test "Drupal 7 installation" {
   set -eu -o pipefail
-
   # Drupal configuration should not be present in Drupal 7
   export HAS_DRUPAL_SETTINGS=false
-
   run ddev config --project-type=drupal7 --docroot=web
   assert_success
-  run ddev start -y
-  assert_success
-
-  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${DIR}"
-  assert_success
-
-  run ddev restart -y
-  assert_success
+  install_add_on
   health_checks
 }
 
 # bats test_tags=drupal
 @test "Drupal installation without settings management" {
   set -eu -o pipefail
-
   export HAS_DRUPAL_SETTINGS=false
-
   run ddev config --disable-settings-management --project-type=drupal --docroot=web
   assert_success
-  run ddev start -y
-  assert_success
-
-  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in $(pwd)" >&3
-  run ddev add-on get "${DIR}"
-  assert_success
-
-  run ddev restart -y
-  assert_success
+  install_add_on
   health_checks
+}
+
+# bats test_tags=laravel-redis
+@test "Laravel installation: ddev redis-backend redis" {
+  set -eu -o pipefail
+  setup_laravel
+  install_add_on
+  use_redis_backend redis
+  # The default image is not pinned in .env.redis
+  assert_file_not_exist .ddev/.env.redis
+  health_checks
+}
+
+# bats test_tags=laravel-redis
+@test "Laravel installation: ddev redis-backend redis-alpine optimized" {
+  set -eu -o pipefail
+  setup_laravel
+  install_add_on
+  use_redis_backend redis-alpine optimized
+  health_checks
+}
+
+# bats test_tags=laravel-redis
+@test "Laravel installation: ddev redis-backend redis:7" {
+  set -eu -o pipefail
+  setup_laravel
+  install_add_on
+  use_redis_backend redis:7
+  health_checks redis 7
+}
+
+# bats test_tags=laravel-valkey
+@test "Laravel installation: ddev redis-backend valkey" {
+  set -eu -o pipefail
+  setup_laravel
+  install_add_on
+  use_redis_backend valkey
+  health_checks valkey 9
+}
+
+# bats test_tags=laravel-valkey
+@test "Laravel installation: ddev redis-backend valkey-alpine optimized" {
+  set -eu -o pipefail
+  setup_laravel
+  install_add_on
+  use_redis_backend valkey-alpine optimized
+  health_checks valkey 9
 }
