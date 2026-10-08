@@ -1,17 +1,21 @@
 name: tests
 on:
   pull_request:
+    paths-ignore:
+      - "**.md"
   push:
     branches: [ main ]
+    paths-ignore:
+      - "**.md"
 
   schedule:
-  - cron: '25 08 * * *'
+    - cron: '25 08 * * *'
 
   workflow_dispatch:
     inputs:
       debug_enabled:
         type: boolean
-        description: Debug with tmate
+        description: Enable remote debugging session
         required: false
         default: false
 
@@ -26,6 +30,7 @@ jobs:
   tests:
     strategy:
       matrix:
+        os: [ubuntu-latest, ubuntu-26.04-arm]
         ddev_version: [stable, HEAD]
         # The "release" tests only run on schedule and workflow_dispatch.
         bats_tag: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
@@ -33,7 +38,7 @@ jobs:
           || fromJSON('["default", "drupal", "laravel-redis", "laravel-valkey"]') }}
       fail-fast: false
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: ddev/github-action-add-on-test@v2
