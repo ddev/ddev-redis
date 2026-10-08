@@ -73,49 +73,64 @@ function check_docker_image() {
 
 function use_docker_image() {
   [[ "$REDIS_DOCKER_IMAGE" != "$DEFAULT_REDIS_DOCKER_IMAGE" ]] && ddev dotenv set .ddev/.env.redis --redis-docker-image="$REDIS_DOCKER_IMAGE"
-  REPO=$(ddev add-on list --installed -j 2>/dev/null | docker run -i --rm ddev/ddev-utilities jq -r '.raw[] | select(.Name=="redis") | .Repository // empty' 2>/dev/null)
-  ddev add-on get "${REPO:-ddev/ddev-redis}"
+  # Reinstall the same add-on version that is installed now
+  local repo version flags=()
+  IFS='|' read -r repo version < <(ddev add-on list --installed -j 2>/dev/null | docker run -i --rm ddev/ddev-utilities jq -r '.raw[] | select(.Name=="redis") | "\(.Repository // "")|\(.Version // "")"' 2>/dev/null)
+  case "$version" in
+    # installed from a local directory
+    "") ;;
+    pr-*) flags=(--pr "${version#pr-}") ;;
+    v[0-9]*) flags=(--version "$version") ;;
+    # the default branch name, e.g. "main"
+    *) flags=(--default-branch) ;;
+  esac
+  ddev add-on get "${repo:-ddev/ddev-redis}" "${flags[@]}"
 }
 
-case "$REDIS_DOCKER_IMAGE" in
-  redis)
-    REDIS_DOCKER_IMAGE="$DEFAULT_REDIS_DOCKER_IMAGE"
-    ;;
-  redis-alpine)
-    REDIS_DOCKER_IMAGE="${DEFAULT_REDIS_DOCKER_IMAGE}-alpine"
-    ;;
-  valkey)
-    REDIS_DOCKER_IMAGE="valkey/valkey:9"
-    REDIS_HOSTNAME="valkey"
-    ;;
-  valkey-alpine)
-    REDIS_DOCKER_IMAGE="valkey/valkey:9-alpine"
-    REDIS_HOSTNAME="valkey"
-    ;;
-  ""|--help|-h)
-    show_help
-    ;;
-  *)
-    # Allow unknown image, nothing to override
-    ;;
-esac
+# "ddev add-on get" overwrites this file while it is running, so keep the main flow
+# in a block, which bash reads completely before running it
+{
+  case "$REDIS_DOCKER_IMAGE" in
+    redis)
+      REDIS_DOCKER_IMAGE="$DEFAULT_REDIS_DOCKER_IMAGE"
+      ;;
+    redis-alpine)
+      REDIS_DOCKER_IMAGE="${DEFAULT_REDIS_DOCKER_IMAGE}-alpine"
+      ;;
+    valkey)
+      REDIS_DOCKER_IMAGE="valkey/valkey:9"
+      REDIS_HOSTNAME="valkey"
+      ;;
+    valkey-alpine)
+      REDIS_DOCKER_IMAGE="valkey/valkey:9-alpine"
+      REDIS_HOSTNAME="valkey"
+      ;;
+    ""|--help|-h)
+      show_help
+      ;;
+    *)
+      # Allow unknown image, nothing to override
+      ;;
+  esac
 
-check_docker_image
-cleanup
-optimize_config
-change_hostname
-use_docker_image
+  check_docker_image
+  cleanup
+  optimize_config
+  change_hostname
+  use_docker_image
 
-echo
-echo "✅ Redis backend: $REDIS_DOCKER_IMAGE"
-if [[ "$REDIS_CONFIG" == "optimized" || "$REDIS_CONFIG" == "optimize" ]]; then
-  echo "⚙️ Redis config: optimized"
-else
-  echo "⚙️ Redis config: default"
-fi
+  echo
+  echo "✅ Redis backend: $REDIS_DOCKER_IMAGE"
+  if [[ "$REDIS_CONFIG" == "optimized" || "$REDIS_CONFIG" == "optimize" ]]; then
+    echo "⚙️ Redis config: optimized"
+  else
+    echo "⚙️ Redis config: default"
+  fi
 
-echo
-echo "📝 Commit the '.ddev' directory to version control"
+  echo
+  echo "📝 Commit the '.ddev' directory to version control"
 
-echo
-echo "🔄 Redis config available after 'ddev restart'"
+  echo
+  echo "🔄 Redis config available after 'ddev restart'"
+  exit 0
+}
